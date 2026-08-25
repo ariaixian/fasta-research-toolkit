@@ -81,7 +81,29 @@ This replaces ad hoc copying and renaming while keeping the scientific judgment
 visible and reviewable. The assignment table remains private if its group labels or
 membership reveal unpublished findings.
 
-## 6. Generate identifier-free QC
+## 6. Align and construct a distance tree locally
+
+Install the optional Python dependency and an approved local aligner. Then run:
+
+```bash
+fasta-toolkit align \
+  /secure/project-run/working/filtered.fasta \
+  /secure/project-run/results/aligned.fasta \
+  --engine muscle5 \
+  --threads 4
+
+fasta-toolkit tree \
+  /secure/project-run/results/aligned.fasta \
+  /secure/project-run/results/tree.nwk \
+  --model blosum62 \
+  --distance-output /secure/project-run/results/distances.csv
+```
+
+Both steps run locally. Record the toolkit version, aligner name and version, distance
+model, thread count, and input/output checksums in the private run notes. Tree and
+matrix outputs remain private until cleared for publication.
+
+## 7. Generate identifier-free QC
 
 ```bash
 fasta-toolkit summarize /secure/project-run/working/filtered.fasta --json \
@@ -94,7 +116,7 @@ Compare record counts between stages and record the exact toolkit version:
 fasta-toolkit --version
 ```
 
-## 7. Publication gate
+## 8. Publication gate
 
 Before committing any change:
 

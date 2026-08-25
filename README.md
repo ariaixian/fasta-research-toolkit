@@ -20,6 +20,8 @@ figures, alignments, trees, reports, or unpublished research context.
 - Normalize case and filter records with explicit length and symbol policies.
 - Pseudonymize identifiers with deterministic HMAC-SHA256 labels.
 - Split records using an auditable CSV assignment table.
+- Run MUSCLE or ClustalW locally without uploading sequences.
+- Calculate BLOSUM62 or identity distances and construct Neighbor-Joining trees.
 - Block common research-data formats from Git and audit the public tree before every push.
 
 ## Quick start
@@ -34,6 +36,12 @@ fasta-toolkit validate examples/synthetic/proteins.fasta --alphabet protein
 fasta-toolkit summarize examples/synthetic/proteins.fasta --json
 fasta-toolkit filter examples/synthetic/proteins.fasta /tmp/filtered.fasta \
   --alphabet protein --min-length 20 --drop-descriptions
+```
+
+Install the optional local tree-analysis dependency when needed:
+
+```bash
+python -m pip install -e '.[analysis]'
 ```
 
 Pseudonymization requires a private key provided at runtime. The key and optional
@@ -51,6 +59,21 @@ Split a pseudonymized file using an explicitly reviewed assignment table:
 fasta-toolkit split examples/synthetic/proteins.fasta \
   examples/synthetic/assignments.csv /tmp/groups
 ```
+
+After pseudonymization and filtering, run a user-installed aligner and build a local
+Neighbor-Joining tree:
+
+```bash
+fasta-toolkit align /secure/working/filtered.fasta /secure/results/aligned.fasta \
+  --engine muscle5 --threads 4
+
+fasta-toolkit tree /secure/results/aligned.fasta /secure/results/tree.nwk \
+  --model blosum62 --distance-output /secure/results/distances.csv
+```
+
+MUSCLE or ClustalW must be installed separately. The toolkit invokes the executable
+directly without a shell or network service. See [alignment and trees](docs/alignment-and-trees.md)
+for supported versions, formats, and reproducibility notes.
 
 See [the reproducible workflow](docs/workflow.md) for a staged research setup and
 [the privacy guide](docs/privacy.md) before handling unpublished material.
@@ -71,9 +94,10 @@ See [the reproducible workflow](docs/workflow.md) for a staged research setup an
 ## What this project intentionally does not do
 
 The toolkit is not a complete scientific analysis pipeline. It does not encode a
-study question, select a biological target, perform remote searches, infer trees,
-or interpret results. Those choices belong in a private, versioned analysis layer
-until the underlying research is ready for release.
+study question, select a biological target, perform remote searches, assign
+scientific groups, or interpret trees and statistical results. Those choices belong
+in a private, versioned analysis layer until the underlying research is ready for
+release.
 
 ## Development
 

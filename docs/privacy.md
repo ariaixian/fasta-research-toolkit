@@ -15,6 +15,7 @@ The safeguards are designed to reduce accidental disclosure through:
 - notebook cell outputs and execution history;
 - figures, alignments, trees, reports, and office-document metadata;
 - third-party web services that receive unpublished inputs.
+- tree or distance outputs that preserve sensitive record identifiers.
 
 ## Required controls
 
@@ -44,6 +45,10 @@ directory, never to this repository.
 Do not upload unpublished inputs to remote alignment, search, visualization, AI, or
 notebook services without confirming authorization, retention, and confidentiality
 terms. Prefer approved local tooling for sensitive material.
+
+The `align` and `tree` commands in this repository run locally. Their output can still
+contain identifying headers, so pseudonymize first and keep generated files outside
+Git.
 
 ## Release checklist
 

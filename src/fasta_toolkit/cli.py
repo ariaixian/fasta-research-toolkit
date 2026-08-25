@@ -9,8 +9,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from .alignment import AlignmentError, default_executable, run_alignment
 from .operations import filter_fasta, pseudonymize_fasta, split_fasta
 from .parser import FastaFormatError
+from .phylogeny import AnalysisDependencyError, build_neighbor_joining_tree
 from .quality import summarize_fasta, validate_fasta
 
 
@@ -25,7 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="fasta-toolkit",
         description="Privacy-conscious FASTA validation and preparation.",
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.2.0")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     validate = subparsers.add_parser("validate", help="validate structure and sequence symbols")
@@ -69,6 +71,37 @@ def build_parser() -> argparse.ArgumentParser:
     split_parser.add_argument("--group-column", default="group")
     split_parser.add_argument("--unassigned", choices=("error", "skip"), default="error")
     split_parser.add_argument("--force", action="store_true")
+
+    align_parser = subparsers.add_parser(
+        "align",
+        help="run a user-installed multiple-sequence aligner locally",
+    )
+    align_parser.add_argument("input", type=Path)
+    align_parser.add_argument("output", type=Path)
+    align_parser.add_argument(
+        "--engine",
+        choices=("muscle5", "muscle3", "clustalw"),
+        default="muscle5",
+    )
+    align_parser.add_argument("--executable")
+    align_parser.add_argument("--threads", type=int, default=1)
+    align_parser.add_argument("--format", choices=("fasta", "clustal"), default="fasta")
+    align_parser.add_argument("--sequence-type", choices=("protein", "dna"), default="protein")
+
+    tree_parser = subparsers.add_parser(
+        "tree",
+        help="construct a local Neighbor-Joining tree from an alignment",
+    )
+    tree_parser.add_argument("alignment", type=Path)
+    tree_parser.add_argument("output", type=Path)
+    tree_parser.add_argument(
+        "--alignment-format",
+        choices=("fasta", "clustal"),
+        default="fasta",
+    )
+    tree_parser.add_argument("--model", choices=("identity", "blosum62"), default="blosum62")
+    tree_parser.add_argument("--distance-output", type=Path)
+    tree_parser.add_argument("--midpoint-root", action="store_true")
     return parser
 
 
@@ -144,13 +177,45 @@ def run(arguments: list[str] | None = None) -> int:
         print(json.dumps({"groups": len(counts), "records_by_group": counts}, indent=2))
         return 0
 
+    if args.command == "align":
+        result = run_alignment(
+            args.input,
+            args.output,
+            engine=args.engine,
+            executable=args.executable or default_executable(args.engine),
+            threads=args.threads,
+            output_format=args.format,
+            sequence_type=args.sequence_type,
+        )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "tree":
+        result = build_neighbor_joining_tree(
+            args.alignment,
+            args.output,
+            alignment_format=args.alignment_format,
+            model=args.model,
+            distance_output=args.distance_output,
+            midpoint_root=args.midpoint_root,
+        )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
     raise AssertionError(f"Unhandled command: {args.command}")
 
 
 def main() -> None:
     try:
         raise SystemExit(run())
-    except (FastaFormatError, FileExistsError, OSError, ValueError) as error:
+    except (
+        AlignmentError,
+        AnalysisDependencyError,
+        FastaFormatError,
+        FileExistsError,
+        OSError,
+        ValueError,
+    ) as error:
         print(f"error: {error}", file=sys.stderr)
         raise SystemExit(2) from error
 

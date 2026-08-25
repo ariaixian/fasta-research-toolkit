@@ -74,3 +74,16 @@ def test_summarize_pseudonymize_and_split_cli(
 
     assert run(["split", str(pseudonymous), str(assignments), str(tmp_path / "groups")]) == 0
     assert json.loads(capsys.readouterr().out)["groups"] == 2
+
+
+def test_tree_cli(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+    alignment = tmp_path / "aligned.fasta"
+    alignment.write_text(
+        ">synthetic_a\nACDEFGHIKL\n>synthetic_b\nACDEYGHIKL\n>synthetic_c\nACDEFGHIKM\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "tree.nwk"
+
+    assert run(["tree", str(alignment), str(output), "--model", "identity"]) == 0
+    assert json.loads(capsys.readouterr().out)["method"] == "neighbor-joining"
+    assert output.exists()
