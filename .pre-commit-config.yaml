@@ -1,0 +1,14 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.11
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: publication-audit
+        name: public-tree privacy audit
+        entry: python scripts/audit_public_tree.py .
+        language: system
+        pass_filenames: false

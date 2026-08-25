@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fasta-research-toolkit"
+version = "0.1.0"
+description = "Privacy-conscious command-line tools for reproducible FASTA preparation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+keywords = ["fasta", "research-software", "reproducibility", "bioinformatics"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<7",
+  "ruff>=0.12,<0.13",
+]
+
+[project.scripts]
+fasta-toolkit = "fasta_toolkit.cli:main"
+
+[project.urls]
+Repository = "https://github.com/ariaixian/fasta-research-toolkit"
+Issues = "https://github.com/ariaixian/fasta-research-toolkit/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fasta_toolkit"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config --cov=fasta_toolkit --cov-report=term-missing --cov-fail-under=90"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.format]
+quote-style = "double"
